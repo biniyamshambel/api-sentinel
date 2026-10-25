@@ -1,0 +1,35 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Test and coverage artefacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Generated reports and logs
+reports/
+*.log
+screenshots/*.tmp
+
+# Editor / OS files
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

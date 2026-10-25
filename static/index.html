@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta
+      name="description"
+      content="API Sentinel is a local API health and HTTP security-configuration assessment dashboard for authorized public endpoints."
+    />
+    <title>API Sentinel — API health &amp; security assessment</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"><span></span></span>
+          <div class="brand-copy">
+            <span class="brand-name">API Sentinel</span>
+            <span class="brand-tag">Authorized API assessment</span>
+          </div>
+        </div>
+        <div
+          class="system-state"
+          id="system-state"
+          role="status"
+          aria-live="polite"
+          data-state="checking"
+        >
+          <span class="system-dot" aria-hidden="true"></span>
+          <span id="system-state-text">Checking service&hellip;</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="page">
+      <section class="hero" aria-labelledby="hero-heading">
+        <p class="eyebrow">API health &middot; HTTP security configuration</p>
+        <h1 id="hero-heading">
+          See what your API exposes
+          <span>before someone else does.</span>
+        </h1>
+        <p class="lede">
+          Run an authorized, non-invasive assessment of a public API endpoint.
+          API Sentinel checks reachability, response time, status behaviour, and a
+          focused set of HTTP security headers &mdash; then explains every finding.
+        </p>
+        <ul class="hero-points" aria-label="Assessment characteristics">
+          <li><span aria-hidden="true">01</span> Non-destructive checks only</li>
+          <li><span aria-hidden="true">02</span> Evidence for every finding</li>
+          <li><span aria-hidden="true">03</span> Transparent risk rubric</li>
+        </ul>
+      </section>
+
+      <section class="scan-panel" id="scan-panel" aria-labelledby="scan-heading">
+        <div class="panel-heading">
+          <div>
+            <h2 id="scan-heading">Run an assessment</h2>
+            <p>Enter a public endpoint you own or have permission to test.</p>
+          </div>
+          <button type="button" class="btn btn-ghost" id="demo-button">
+            Load sample report
+          </button>
+        </div>
+
+        <form id="scan-form" novalidate>
+          <label for="target-url">Target API URL</label>
+          <div class="input-row">
+            <input
+              id="target-url"
+              name="url"
+              type="url"
+              inputmode="url"
+              autocomplete="url"
+              spellcheck="false"
+              placeholder="https://api.example.com/health"
+              aria-describedby="url-help"
+              required
+            />
+            <button type="submit" class="btn btn-primary" id="scan-button">
+              <span class="button-spinner" id="scan-spinner" aria-hidden="true" hidden></span>
+              <span id="scan-button-label">Scan API</span>
+            </button>
+          </div>
+          <p class="help" id="url-help">
+            Only <code>http://</code> and <code>https://</code> public endpoints on
+            approved ports. Private, loopback, link-local, credential-bearing, and
+            redirect-to-internal destinations are blocked.
+          </p>
+        </form>
+
+        <div class="alert" id="error-banner" role="alert" tabindex="-1" hidden>
+          <span class="alert-icon" aria-hidden="true">!</span>
+          <div>
+            <strong id="error-title">Scan could not start</strong>
+            <p id="error-message"></p>
+          </div>
+        </div>
+
+        <div class="notice" id="demo-note" hidden>
+          <span class="notice-icon" aria-hidden="true">i</span>
+          <p>
+            You are viewing a locally generated sample report. No outbound request
+            was made and the target is fictitious.
+          </p>
+        </div>
+      </section>
+
+      <section class="loading-panel" id="loading" aria-live="polite" hidden>
+        <span class="loader" aria-hidden="true"></span>
+        <div>
+          <h2>Assessing target&hellip;</h2>
+          <p id="loading-target">Validating URL and destination policy.</p>
+          <p class="loading-detail">
+            Request, redirect validation, header analysis, and scoring usually
+            complete in a few seconds.
+          </p>
+        </div>
+      </section>
+
+      <div class="empty-panel" id="empty-state">
+        <div class="empty-copy">
+          <p class="eyebrow">Ready for a first scan</p>
+          <h2>No assessment loaded</h2>
+          <p>
+            Start with a real endpoint, or load the sample report to explore the
+            dashboard without making a network request.
+          </p>
+        </div>
+        <div class="check-chips" aria-label="Checks performed by the scanner">
+          <span>HTTPS usage</span>
+          <span>HSTS</span>
+          <span>Content-Security-Policy</span>
+          <span>X-Content-Type-Options</span>
+          <span>Referrer-Policy</span>
+          <span>HTTP status</span>
+          <span>Latency</span>
+          <span>Redirect safety</span>
+        </div>
+        <p class="empty-note">
+          Scope: configuration observations, not a penetration test. A missing
+          header does not by itself prove an exploitable vulnerability.
+        </p>
+      </div>
+
+      <section class="results" id="results" aria-labelledby="results-heading" hidden>
+        <div class="results-head">
+          <div>
+            <p class="eyebrow">Assessment report</p>
+            <h2 id="results-heading">Assessment complete</h2>
+            <p class="target-line">
+              <span class="field-label">Target</span>
+              <code id="target-url-display"></code>
+            </p>
+            <p class="meta-line">
+              <span id="scan-time"></span>
+              <span class="meta-sep" aria-hidden="true">&middot;</span>
+              <span id="redirect-summary">No redirects</span>
+              <span class="demo-badge" id="demo-badge" hidden>Sample data</span>
+            </p>
+          </div>
+          <div class="results-actions">
+            <button type="button" class="btn btn-secondary" id="download-button">
+              <span aria-hidden="true">&darr;</span> Download JSON
+            </button>
+          </div>
+        </div>
+
+        <div class="summary-grid">
+          <article class="metric-card" id="reachability-card">
+            <p class="metric-label">Reachability</p>
+            <p class="metric-value" id="reachability-value">&mdash;</p>
+            <p class="metric-note" id="reachability-note"></p>
+          </article>
+          <article class="metric-card">
+            <p class="metric-label">HTTP status</p>
+            <p class="metric-value" id="status-value">&mdash;</p>
+            <p class="metric-note" id="status-note"></p>
+          </article>
+          <article class="metric-card">
+            <p class="metric-label">Application response</p>
+            <p class="metric-value" id="application-value">&mdash;</p>
+            <p class="metric-note" id="application-note"></p>
+          </article>
+          <article class="metric-card">
+            <p class="metric-label">Response time</p>
+            <p class="metric-value" id="latency-value">&mdash;</p>
+            <p class="metric-note">Time to final response headers</p>
+          </article>
+          <article class="metric-card risk-card" id="risk-card">
+            <p class="metric-label">Risk score</p>
+            <div class="risk-row">
+              <span class="risk-number" id="risk-score">&mdash;</span>
+              <span class="risk-badge" id="risk-level">&mdash;</span>
+            </div>
+            <progress id="risk-progress" max="100" value="0" aria-label="Risk score out of 100"></progress>
+            <p class="metric-note" id="risk-note">Rule-based configuration risk</p>
+          </article>
+        </div>
+
+        <div class="content-grid">
+          <section class="panel findings-panel" aria-labelledby="findings-heading">
+            <div class="panel-heading findings-heading-row">
+              <div>
+                <h3 id="findings-heading">
+                  Findings <span class="count-pill" id="findings-count">0</span>
+                </h3>
+                <p>Grouped by severity. Evidence is displayed as plain text.</p>
+              </div>
+              <div class="filter-group" id="severity-filters" role="group" aria-label="Filter findings by severity"></div>
+            </div>
+
+            <div id="findings-list" class="findings-list"></div>
+            <div class="no-findings" id="findings-empty" hidden>
+              <strong>No findings from this rule set.</strong>
+              <p>
+                The assessed configuration passed the checks that could be
+                performed. This does not prove the API is free of vulnerabilities.
+              </p>
+            </div>
+          </section>
+
+          <aside class="side-column" aria-label="Report details">
+            <section class="panel side-card" aria-labelledby="checks-heading">
+              <h3 id="checks-heading">Checks performed</h3>
+              <ul class="check-list" id="checks-list"></ul>
+            </section>
+
+            <section class="panel side-card" aria-labelledby="model-heading">
+              <h3 id="model-heading">Score model</h3>
+              <p class="side-copy" id="score-method"></p>
+              <ul class="weight-list" id="weight-list"></ul>
+              <p class="side-copy" id="score-bands"></p>
+              <p class="disclaimer" id="score-disclaimer"></p>
+            </section>
+
+            <section class="panel side-card" aria-labelledby="limits-heading">
+              <h3 id="limits-heading">Assessment limitations</h3>
+              <ul class="limitations-list" id="limitations-list"></ul>
+            </section>
+          </aside>
+        </div>
+
+        <details class="panel details-panel" id="redirect-panel">
+          <summary>
+            <span>Redirect chain</span>
+            <span class="count-pill" id="redirect-count">0</span>
+          </summary>
+          <div class="details-body">
+            <ol class="redirect-list" id="redirect-list"></ol>
+            <div class="notice notice-inline" id="redirect-problem" hidden>
+              <span class="notice-icon" aria-hidden="true">i</span>
+              <p id="redirect-problem-text"></p>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <div class="sr-only" id="sr-announcer" role="status" aria-live="polite"></div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <p>
+          <strong>API Sentinel</strong> &middot;
+          <span id="app-version">MVP</span> &middot; Local authorized assessment
+        </p>
+        <p>
+          Based on concepts from the
+          <a href="https://owasp.org/API-Security/" target="_blank" rel="noopener noreferrer">
+            OWASP API Security Project
+          </a>. Not a substitute for a professional penetration test.
+        </p>
+      </div>
+    </footer>
+
+    <template id="finding-template">
+      <article class="finding">
+        <header class="finding-head">
+          <span class="severity-badge"></span>
+          <h4 class="finding-title"></h4>
+        </header>
+        <p class="finding-description"></p>
+        <div class="finding-block">
+          <span class="field-label">Evidence</span>
+          <code class="evidence-code"></code>
+        </div>
+        <div class="finding-block recommendation">
+          <span class="field-label">Recommendation</span>
+          <p class="recommendation-text"></p>
+        </div>
+        <p class="finding-meta">
+          <span class="finding-category"></span>
+          <span aria-hidden="true">&middot;</span>
+          <span class="finding-weight"></span>
+        </p>
+      </article>
+    </template>
+
+    <template id="check-template">
+      <li class="check-item">
+        <span class="check-status"></span>
+        <div>
+          <span class="check-label"></span>
+          <p class="check-detail"></p>
+        </div>
+      </li>
+    </template>
+
+    <template id="group-template">
+      <section class="finding-group">
+        <header class="group-head">
+          <span class="group-dot" aria-hidden="true"></span>
+          <h4 class="group-title"></h4>
+          <span class="group-count"></span>
+        </header>
+        <div class="group-items"></div>
+      </section>
+    </template>
+  </body>
+</html>
