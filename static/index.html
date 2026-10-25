@@ -3,27 +3,41 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="light" />
     <meta
       name="description"
       content="API Sentinel is a local API health and HTTP security-configuration assessment dashboard for authorized public endpoints."
     />
     <title>API Sentinel — API health &amp; security assessment</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
     <link rel="stylesheet" href="/static/styles.css" />
     <script src="/static/app.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
 
-    <header class="topbar">
-      <div class="topbar-inner">
-        <div class="brand">
-          <span class="brand-mark" aria-hidden="true"><span></span></span>
-          <div class="brand-copy">
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="#top" aria-label="API Sentinel — back to top">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M16 4.5 26 8v7.2c0 6.1-3.9 10.4-10 12.3-6.1-1.9-10-6.2-10-12.3V8l10-3.5Z" />
+              <path d="m11.5 16 3.1 3.2 6-6.4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span class="brand-copy">
             <span class="brand-name">API Sentinel</span>
-            <span class="brand-tag">Authorized API assessment</span>
-          </div>
-        </div>
+            <span class="brand-tag">API health &amp; security assessment</span>
+          </span>
+        </a>
+
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="#scan">Scan</a>
+          <a href="#results">Report</a>
+          <a href="#insights">Insights</a>
+          <a href="#about">About</a>
+        </nav>
+
         <div
           class="system-state"
           id="system-state"
@@ -37,60 +51,89 @@
       </div>
     </header>
 
-    <main id="main" class="page">
-      <section class="hero" aria-labelledby="hero-heading">
-        <p class="eyebrow">API health &middot; HTTP security configuration</p>
-        <h1 id="hero-heading">
-          See what your API exposes
-          <span>before someone else does.</span>
-        </h1>
-        <p class="lede">
-          Run an authorized, non-invasive assessment of a public API endpoint.
-          API Sentinel checks reachability, response time, status behaviour, and a
-          focused set of HTTP security headers &mdash; then explains every finding.
-        </p>
-        <ul class="hero-points" aria-label="Assessment characteristics">
-          <li><span aria-hidden="true">01</span> Non-destructive checks only</li>
-          <li><span aria-hidden="true">02</span> Evidence for every finding</li>
-          <li><span aria-hidden="true">03</span> Transparent risk rubric</li>
-        </ul>
+    <main id="main" class="container">
+      <section class="hero" id="top" aria-labelledby="hero-heading">
+        <div class="hero-copy">
+          <p class="eyebrow">Authorized assessment · Non-destructive checks</p>
+          <h1 id="hero-heading">Know what your API exposes.</h1>
+          <p class="hero-lede">
+            API Sentinel checks whether a public API responds, how quickly it
+            responds, and whether a focused set of HTTP security headers is
+            configured. Every finding shows its evidence and a practical next step.
+          </p>
+          <ul class="hero-points" aria-label="Assessment characteristics">
+            <li><span aria-hidden="true">01</span> One bounded request</li>
+            <li><span aria-hidden="true">02</span> Evidence for every finding</li>
+            <li><span aria-hidden="true">03</span> Transparent scoring</li>
+          </ul>
+        </div>
+
+        <aside class="scope-card" aria-labelledby="scope-heading">
+          <p class="eyebrow">Assessment scope</p>
+          <h2 id="scope-heading">Configuration, not exploitation.</h2>
+          <ul class="scope-list">
+            <li>Reachability, HTTP status, and response time</li>
+            <li>HTTPS, HSTS, CSP, content-type, and referrer headers</li>
+            <li>Redirect destination safety</li>
+            <li>Evidence-based remediation guidance</li>
+          </ul>
+          <p class="scope-note">
+            API Sentinel does not authenticate, fuzz, exploit, or test business logic.
+            A missing header is a hardening opportunity, not proof of a vulnerability.
+          </p>
+        </aside>
       </section>
 
-      <section class="scan-panel" id="scan-panel" aria-labelledby="scan-heading">
-        <div class="panel-heading">
+      <section class="scan-section" id="scan" aria-labelledby="scan-heading">
+        <div class="section-heading scan-heading">
           <div>
-            <h2 id="scan-heading">Run an assessment</h2>
-            <p>Enter a public endpoint you own or have permission to test.</p>
+            <p class="eyebrow">Step 01</p>
+            <h2 id="scan-heading">Run an API security scan</h2>
+            <p>
+              Enter a public endpoint you own or have explicit permission to assess.
+              Server-side validation and SSRF protections apply to every request.
+            </p>
           </div>
-          <button type="button" class="btn btn-ghost" id="demo-button">
+          <button type="button" class="button button-quiet" id="demo-button">
             Load sample report
           </button>
         </div>
 
-        <form id="scan-form" novalidate>
-          <label for="target-url">Target API URL</label>
-          <div class="input-row">
-            <input
-              id="target-url"
-              name="url"
-              type="url"
-              inputmode="url"
-              autocomplete="url"
-              spellcheck="false"
-              placeholder="https://api.example.com/health"
-              aria-describedby="url-help"
-              required
-            />
-            <button type="submit" class="btn btn-primary" id="scan-button">
-              <span class="button-spinner" id="scan-spinner" aria-hidden="true" hidden></span>
-              <span id="scan-button-label">Scan API</span>
-            </button>
+        <form id="scan-form" class="scan-form" novalidate>
+          <div class="field-group">
+            <label for="target-url">Target API URL</label>
+            <div class="input-row">
+              <input
+                id="target-url"
+                name="url"
+                type="url"
+                inputmode="url"
+                autocomplete="url"
+                spellcheck="false"
+                placeholder="https://api.example.com/health"
+                aria-describedby="url-help"
+                required
+              />
+              <button type="submit" class="button button-primary" id="scan-button">
+                <span class="button-spinner" id="scan-spinner" aria-hidden="true" hidden></span>
+                <span id="scan-button-label">Run Security Scan</span>
+              </button>
+            </div>
+            <p class="help" id="url-help">
+              Only public <code>http://</code> and <code>https://</code> endpoints on
+              approved ports. Private, loopback, link-local, credential-bearing, and
+              redirect-to-internal destinations are blocked by default.
+            </p>
           </div>
-          <p class="help" id="url-help">
-            Only <code>http://</code> and <code>https://</code> public endpoints on
-            approved ports. Private, loopback, link-local, credential-bearing, and
-            redirect-to-internal destinations are blocked.
-          </p>
+
+          <div class="responsible-note">
+            <span class="note-mark" aria-hidden="true">!</span>
+            <p>
+              <strong>Responsible use:</strong> scan only systems that you own or have
+              explicit permission to test. This tool records what a single request
+              reveals; it is not a penetration test.
+            </p>
+          </div>
         </form>
 
         <div class="alert" id="error-banner" role="alert" tabindex="-1" hidden>
@@ -104,10 +147,27 @@
         <div class="notice" id="demo-note" hidden>
           <span class="notice-icon" aria-hidden="true">i</span>
           <p>
-            You are viewing a locally generated sample report. No outbound request
-            was made and the target is fictitious.
+            You are viewing a locally generated sample report. No outbound request was
+            made and the target is fictitious. It is labelled as sample data in the report.
           </p>
         </div>
+      </section>
+
+      <section class="history-section" id="history-panel" aria-labelledby="history-heading">
+        <div class="history-head">
+          <div>
+            <h2 id="history-heading">Recent scans</h2>
+            <p id="history-note">
+              Temporary browser history for this tab only. Query strings are removed, and
+              the list is cleared when this tab closes.
+            </p>
+          </div>
+          <button type="button" class="button button-quiet button-small" id="history-clear" hidden>
+            Clear history
+          </button>
+        </div>
+        <ul class="history-list" id="history-list" aria-live="polite"></ul>
+        <p class="history-empty" id="history-empty">No scans recorded in this tab yet.</p>
       </section>
 
       <section class="loading-panel" id="loading" aria-live="polite" hidden>
@@ -116,93 +176,129 @@
           <h2>Assessing target&hellip;</h2>
           <p id="loading-target">Validating URL and destination policy.</p>
           <p class="loading-detail">
-            Request, redirect validation, header analysis, and scoring usually
-            complete in a few seconds.
+            Request, redirect validation, header analysis, and scoring usually complete
+            in a few seconds.
           </p>
         </div>
       </section>
 
-      <div class="empty-panel" id="empty-state">
+      <section class="empty-panel" id="empty-state" aria-labelledby="empty-heading">
+        <div class="empty-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M24 6 38 11v10.5c0 8.8-5.7 15.3-14 18-8.3-2.7-14-9.2-14-18V11l14-5Z" />
+            <path d="M18 24h12M24 18v12" stroke-linecap="round" />
+          </svg>
+        </div>
         <div class="empty-copy">
-          <p class="eyebrow">Ready for a first scan</p>
-          <h2>No assessment loaded</h2>
+          <p class="eyebrow">Awaiting first scan</p>
+          <h2 id="empty-heading">No assessment loaded yet</h2>
           <p>
-            Start with a real endpoint, or load the sample report to explore the
-            dashboard without making a network request.
+            Run a real scan to populate the overview and findings, or load the sample
+            report to explore the interface without making a network request.
+          </p>
+          <ul class="check-chips" aria-label="Checks performed by the scanner">
+            <li>HTTPS usage</li>
+            <li>HSTS</li>
+            <li>Content-Security-Policy</li>
+            <li>X-Content-Type-Options</li>
+            <li>Referrer-Policy</li>
+            <li>HTTP status</li>
+            <li>Latency</li>
+            <li>Redirect safety</li>
+          </ul>
+          <p class="empty-note">
+            No statistics or findings are shown until an actual report exists.
           </p>
         </div>
-        <div class="check-chips" aria-label="Checks performed by the scanner">
-          <span>HTTPS usage</span>
-          <span>HSTS</span>
-          <span>Content-Security-Policy</span>
-          <span>X-Content-Type-Options</span>
-          <span>Referrer-Policy</span>
-          <span>HTTP status</span>
-          <span>Latency</span>
-          <span>Redirect safety</span>
-        </div>
-        <p class="empty-note">
-          Scope: configuration observations, not a penetration test. A missing
-          header does not by itself prove an exploitable vulnerability.
-        </p>
-      </div>
+      </section>
 
       <section class="results" id="results" aria-labelledby="results-heading" hidden>
-        <div class="results-head">
-          <div>
+        <div class="report-header">
+          <div class="report-identity">
             <p class="eyebrow">Assessment report</p>
             <h2 id="results-heading">Assessment complete</h2>
-            <p class="target-line">
+            <p class="report-target">
               <span class="field-label">Target</span>
               <code id="target-url-display"></code>
             </p>
-            <p class="meta-line">
+            <p class="report-meta">
               <span id="scan-time"></span>
               <span class="meta-sep" aria-hidden="true">&middot;</span>
               <span id="redirect-summary">No redirects</span>
               <span class="demo-badge" id="demo-badge" hidden>Sample data</span>
             </p>
           </div>
-          <div class="results-actions">
-            <button type="button" class="btn btn-secondary" id="download-button">
-              <span aria-hidden="true">&darr;</span> Download JSON
-            </button>
+
+          <div class="report-exports" aria-labelledby="exports-heading">
+            <h3 id="exports-heading">Export report</h3>
+            <div class="export-buttons">
+              <button type="button" class="button button-primary" id="pdf-button">
+                <span class="button-spinner" id="pdf-spinner" aria-hidden="true" hidden></span>
+                <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                  <path d="M6 2.8h8l4 4V21H6V2.8Z" stroke-linejoin="round" />
+                  <path d="M14 2.8V7h4M9 16.5h6M9 13h4" stroke-linecap="round" />
+                </svg>
+                <span id="pdf-button-label">Download PDF Report</span>
+              </button>
+              <button type="button" class="button button-secondary" id="download-button">
+                <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                  <path d="M12 3v12M7.5 10.5 12 15l4.5-4.5M4 19.5h16" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Download JSON Report
+              </button>
+            </div>
+            <p class="export-hint">
+              PDF is designed for reading, printing, and presentations. JSON is designed
+              for programmatic processing and retains the complete report structure.
+            </p>
+            <p class="export-status" id="export-status" role="status" aria-live="polite"></p>
           </div>
         </div>
 
-        <div class="summary-grid">
-          <article class="metric-card" id="reachability-card">
-            <p class="metric-label">Reachability</p>
-            <p class="metric-value" id="reachability-value">&mdash;</p>
-            <p class="metric-note" id="reachability-note"></p>
-          </article>
-          <article class="metric-card">
-            <p class="metric-label">HTTP status</p>
-            <p class="metric-value" id="status-value">&mdash;</p>
-            <p class="metric-note" id="status-note"></p>
-          </article>
-          <article class="metric-card">
-            <p class="metric-label">Application response</p>
-            <p class="metric-value" id="application-value">&mdash;</p>
-            <p class="metric-note" id="application-note"></p>
-          </article>
-          <article class="metric-card">
-            <p class="metric-label">Response time</p>
-            <p class="metric-value" id="latency-value">&mdash;</p>
-            <p class="metric-note">Time to final response headers</p>
-          </article>
-          <article class="metric-card risk-card" id="risk-card">
-            <p class="metric-label">Risk score</p>
-            <div class="risk-row">
-              <span class="risk-number" id="risk-score">&mdash;</span>
-              <span class="risk-badge" id="risk-level">&mdash;</span>
+        <section class="overview" id="overview" aria-labelledby="overview-heading">
+          <div class="section-heading compact">
+            <div>
+              <h3 id="overview-heading">Latest scan overview</h3>
+              <p>Actual values from the completed report shown below.</p>
             </div>
-            <progress id="risk-progress" max="100" value="0" aria-label="Risk score out of 100"></progress>
-            <p class="metric-note" id="risk-note">Rule-based configuration risk</p>
-          </article>
-        </div>
+            <span class="report-id" id="report-id"></span>
+          </div>
 
-        <div class="content-grid">
+          <div class="stat-grid">
+            <article class="stat-card" id="reachability-card">
+              <p class="stat-label">Latest scan status</p>
+              <p class="stat-value" id="reachability-value">&mdash;</p>
+              <p class="stat-note" id="reachability-note"></p>
+            </article>
+            <article class="stat-card" id="status-card">
+              <p class="stat-label">HTTP status</p>
+              <p class="stat-value" id="status-value">&mdash;</p>
+              <p class="stat-note" id="status-note"></p>
+            </article>
+            <article class="stat-card" id="latency-card">
+              <p class="stat-label">Response latency</p>
+              <p class="stat-value" id="latency-value">&mdash;</p>
+              <p class="stat-note" id="latency-note"></p>
+            </article>
+            <article class="stat-card" id="findings-stat-card">
+              <p class="stat-label">Total findings</p>
+              <p class="stat-value" id="findings-stat-value">0</p>
+              <p class="stat-note" id="findings-stat-note"></p>
+            </article>
+            <article class="stat-card score-card" id="risk-card">
+              <p class="stat-label">Security score</p>
+              <div class="score-row">
+                <span class="score-number" id="risk-score">&mdash;</span>
+                <span class="score-max">/ 100</span>
+                <span class="risk-badge" id="risk-level">&mdash;</span>
+              </div>
+              <progress id="risk-progress" max="100" value="0" aria-label="Security score out of 100; higher scores indicate more configuration risk"></progress>
+              <p class="stat-note" id="risk-note">Higher scores indicate more configuration risk.</p>
+            </article>
+          </div>
+        </section>
+
+        <div class="report-grid">
           <section class="panel findings-panel" aria-labelledby="findings-heading">
             <div class="panel-heading findings-heading-row">
               <div>
@@ -218,8 +314,8 @@
             <div class="no-findings" id="findings-empty" hidden>
               <strong>No findings from this rule set.</strong>
               <p>
-                The assessed configuration passed the checks that could be
-                performed. This does not prove the API is free of vulnerabilities.
+                The assessed configuration passed the checks that could be performed.
+                This does not prove that the API is free of vulnerabilities.
               </p>
             </div>
           </section>
@@ -260,21 +356,173 @@
         </details>
       </section>
 
+      <section class="insights" id="insights" aria-labelledby="insights-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Plain-English guidance</p>
+            <h2 id="insights-heading">Understanding your results</h2>
+            <p>
+              These notes explain what the scanner observed. They are not a substitute
+              for a full security review.
+            </p>
+          </div>
+        </div>
+
+        <div class="insight-grid">
+          <article>
+            <h3>Why HTTPS matters</h3>
+            <p>
+              HTTPS encrypts traffic between the client and API. Without it, credentials,
+              tokens, and response data can be read or modified on the network path.
+            </p>
+          </article>
+          <article>
+            <h3>What HSTS does</h3>
+            <p>
+              Strict-Transport-Security tells browsers to use HTTPS for future requests
+              to the site. It only applies over HTTPS and is most useful with a long
+              <code>max-age</code>.
+            </p>
+          </article>
+          <article>
+            <h3>When CSP helps</h3>
+            <p>
+              Content-Security-Policy can limit content injection on browser-facing
+              routes. It matters less for a pure JSON API, but remains useful for docs
+              and HTML endpoints.
+            </p>
+          </article>
+          <article>
+            <h3>Content-type and referrer controls</h3>
+            <p>
+              <code>X-Content-Type-Options: nosniff</code> discourages MIME sniffing.
+              <code>Referrer-Policy</code> limits how much URL information is shared with
+              other origins.
+            </p>
+          </article>
+          <article>
+            <h3>Status and latency</h3>
+            <p>
+              A 2xx status means the application accepted the request. 4xx and 5xx
+              responses still prove reachability but not success. Latency measures time
+              to the final response headers, not full end-to-end processing.
+            </p>
+          </article>
+          <article>
+            <h3>A missing header is a lead</h3>
+            <p>
+              Missing hardening headers can increase risk, but they do not by themselves
+              prove an exploitable vulnerability. Use the findings as review priorities.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="about" id="about" aria-labelledby="about-heading">
+        <div class="about-copy">
+          <p class="eyebrow">About the project</p>
+          <h2 id="about-heading">A small, inspectable security assessment tool.</h2>
+          <p>
+            API Sentinel is an API health monitoring and security configuration
+            assessment tool designed to help users understand API availability, response
+            performance, and HTTP security-header configuration.
+          </p>
+          <p>
+            It performs a bounded, non-destructive request, checks a focused rule set, and
+            explains every finding with evidence and remediation guidance. The interface
+            is intentionally local and transparent so learners can see how the result was
+            produced.
+          </p>
+
+          <div class="about-grid">
+            <div>
+              <h3>Technology</h3>
+              <p>
+                Python, FastAPI, Uvicorn, HTTPX, Pydantic, ReportLab, and a vanilla
+                HTML/CSS/JavaScript dashboard. Reports are generated locally; there is no
+                database or paid API.
+              </p>
+            </div>
+            <div>
+              <h3>Score meaning</h3>
+              <p>
+                The security score is an additive heuristic based on the scanner's
+                severity weights. Higher values indicate more configuration risk. It is
+                not a validated industry rating and cannot establish that an API is
+                completely secure.
+              </p>
+            </div>
+            <div>
+              <h3>Rule-based limits</h3>
+              <p>
+                The scan reflects one request at one point in time. CDNs, WAFs, edge nodes,
+                authentication requirements, and application behavior can change what is
+                observed.
+              </p>
+            </div>
+            <div>
+              <h3>Responsible use</h3>
+              <p>
+                Assess only systems you own or have explicit permission to test. API
+                Sentinel is an educational assessment aid, not an authorization to probe
+                third-party services.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="creator-card" aria-labelledby="creator-heading">
+          <p class="eyebrow">Created by</p>
+          <h2 id="creator-heading">Biniyam Shambel</h2>
+          <p class="creator-title">Ethical Hacker | ID-CTC_721</p>
+          <p class="creator-note">
+            API Sentinel was built as a practical cybersecurity project focused on
+            authorized assessment, explainable results, and responsible disclosure.
+          </p>
+          <a class="text-link" href="https://owasp.org/API-Security/" target="_blank" rel="noopener noreferrer">
+            OWASP API Security Project
+            <span aria-hidden="true">↗</span>
+          </a>
+        </aside>
+      </section>
+
       <div class="sr-only" id="sr-announcer" role="status" aria-live="polite"></div>
     </main>
 
-    <footer class="footer">
-      <div class="footer-inner">
-        <p>
-          <strong>API Sentinel</strong> &middot;
-          <span id="app-version">MVP</span> &middot; Local authorized assessment
-        </p>
-        <p>
-          Based on concepts from the
-          <a href="https://owasp.org/API-Security/" target="_blank" rel="noopener noreferrer">
-            OWASP API Security Project
-          </a>. Not a substitute for a professional penetration test.
-        </p>
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div class="footer-brand">
+          <p class="footer-wordmark">API Sentinel</p>
+          <p class="footer-description">
+            API health monitoring and security configuration assessment for authorized
+            public endpoints.
+          </p>
+          <p class="footer-version"><span id="app-version">MVP</span> · Local assessment</p>
+        </div>
+
+        <div class="footer-creator">
+          <p class="footer-label">Creator</p>
+          <p class="footer-name">Created by Biniyam Shambel</p>
+          <p class="footer-title">Ethical Hacker | ID-CTC_721</p>
+        </div>
+
+        <div class="footer-notes">
+          <p class="footer-label">Project notes</p>
+          <p>
+            Rule-based observations, not a penetration-test certificate. Scan only
+            authorized systems.
+          </p>
+          <p>
+            Informed by the
+            <a href="https://owasp.org/API-Security/" target="_blank" rel="noopener noreferrer">
+              OWASP API Security Project
+            </a>.
+          </p>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <p>API Sentinel · Local authorized assessment</p>
+        <p>Reports are generated from the scan result currently displayed.</p>
       </div>
     </footer>
 
@@ -290,7 +538,7 @@
           <code class="evidence-code"></code>
         </div>
         <div class="finding-block recommendation">
-          <span class="field-label">Recommendation</span>
+          <span class="field-label">Recommended remediation</span>
           <p class="recommendation-text"></p>
         </div>
         <p class="finding-meta">

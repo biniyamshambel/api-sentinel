@@ -30,7 +30,11 @@ class _DemoHandler(BaseHTTPRequestHandler):
             self.send_header(key, value)
         self.end_headers()
         if body:
-            self.wfile.write(body)
+            try:
+                self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError):
+                # A client-side timeout can close the socket before the fixture responds.
+                return
 
     def do_GET(self) -> None:  # noqa: N802
         path = urlsplit(self.path).path

@@ -12,15 +12,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import uvicorn
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import ValidationError
 
 from app.config import APP_NAME, VERSION, Settings
 from app.demo import build_demo_report
 from app.errors import ScanInputError
 from app.models import HealthResponse, ScanReport, ScanRequest
 from app.network import SafeFetcher
+from app.pdf_report import build_pdf, pdf_filename, validate_pdf_report_limits
 from app.scanner import build_report
 
 logger = logging.getLogger("api_sentinel")
@@ -31,6 +33,7 @@ logging.basicConfig(
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
+MAX_PDF_REQUEST_BYTES = 512 * 1024
 
 app = FastAPI(
     title=APP_NAME,
@@ -104,6 +107,91 @@ async def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
 async def demo(settings: Settings = Depends(get_settings)) -> ScanReport:
     """Return a predictable sample report. No outbound request is performed."""
     return build_demo_report(settings)
+
+
+@app.post(
+    "/api/report/pdf",
+    tags=["report"],
+    response_class=Response,
+    responses={
+        200: {"content": {"application/pdf": {}}, "description": "PDF assessment report"},
+        413: {"description": "Report payload is too large"},
+        422: {"description": "Report payload is invalid"},
+    },
+)
+async def report_pdf(request: Request) -> Response:
+    """Render an existing ScanReport as a PDF. This endpoint never scans a target."""
+
+    declared_length = request.headers.get("content-length")
+    if declared_length:
+        try:
+            if int(declared_length) > MAX_PDF_REQUEST_BYTES:
+                return _report_error(
+                    "The report payload is too large to export.",
+                    "report_too_large",
+                    413,
+                )
+        except ValueError:
+            return _report_error(
+                "The report payload has an invalid Content-Length header.",
+                "invalid_report",
+                400,
+            )
+
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > MAX_PDF_REQUEST_BYTES:
+            return _report_error(
+                "The report payload is too large to export.",
+                "report_too_large",
+                413,
+            )
+
+    if not body:
+        return _report_error(
+            "A completed API Sentinel report is required.",
+            "invalid_report",
+            422,
+        )
+
+    try:
+        report = ScanReport.model_validate_json(bytes(body))
+        validate_pdf_report_limits(report)
+    except (ValidationError, ValueError):
+        return _report_error(
+            "The supplied report is not a valid API Sentinel report.",
+            "invalid_report",
+            422,
+        )
+
+    try:
+        pdf = build_pdf(report)
+    except Exception:  # pragma: no cover - defensive boundary
+        logger.exception("PDF report generation failed")
+        return _report_error(
+            "The PDF report could not be generated. The scan result was not modified.",
+            "pdf_generation_failed",
+            500,
+        )
+
+    filename = pdf_filename(report)
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(pdf)),
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+def _report_error(message: str, code: str, status_code: int) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": message, "code": code},
+    )
 
 
 @app.post("/api/scan", response_model=ScanReport, tags=["scan"])

@@ -20,9 +20,10 @@ attempt denial of service.
 
 ```mermaid
 flowchart LR
-    U["Browser<br/>dark dashboard"] -->|"GET /"| S["FastAPI + static files"]
+    U["Browser<br/>warm-white dashboard"] -->|"GET /"| S["FastAPI + static files"]
     U -->|"POST /api/scan"| A["Scan endpoint"]
     U -->|"GET /api/demo"| M["Deterministic demo report"]
+    U -->|"POST /api/report/pdf"| P["PDF report endpoint"]
     U -->|"GET /api/health"| H["Health endpoint"]
 
     A --> V["URL & destination policy"]
@@ -40,6 +41,8 @@ flowchart LR
     K --> J["Pydantic ScanReport"]
     J --> U
     J --> L["JSON download in browser"]
+    J --> P
+    P --> PDF["Validated A4 PDF<br/>redacted URL values"]
 ```
 
 ---
@@ -53,6 +56,7 @@ flowchart LR
 | `app/url_safety.py` | URL parsing, hostname rules, DNS resolution, IPv4/IPv6 address policy |
 | `app/network.py` | Guarded transport, DNS-pinned connection backend, bounded fetch, redirect handling, safe error mapping |
 | `app/scanner.py` | Header rules, risk calculation, report construction and limitations |
+| `app/pdf_report.py` | Validated ReportLab PDF renderer, text escaping, collection limits, URL redaction |
 | `app/demo.py` | Deterministic sample report (no network) |
 | `app/models.py` | Pydantic request/response models |
 | `demo_target.py` | Intentionally under-configured local HTTP API for demonstrations |
@@ -264,7 +268,39 @@ risk rating. Every finding's weight is included in the JSON report and displayed
 
 ---
 
-## 8. Testing strategy
+## 8. PDF report export
+
+The dashboard keeps the completed `ScanReport` in memory. **Download JSON** serializes that
+object in the browser. **Download PDF Report** sends the same object to
+`POST /api/report/pdf`; no second scan is performed.
+
+The endpoint:
+
+1. Rejects request bodies larger than 512 KiB, checking `Content-Length` and the streamed
+   body.
+2. Validates the payload with `ScanReport.model_validate_json`. HTML or arbitrary content is
+   rejected with `422 invalid_report`.
+3. Applies collection limits (100 findings, 100 checks, 50 limitations, 20 redirect entries).
+4. Renders a paginated A4 document with ReportLab and returns the PDF bytes. Secrets,
+   cookies, authorization headers, and response bodies are never included.
+
+The renderer:
+
+- registers DejaVu Sans when available, with Liberation and built-in Helvetica fallbacks;
+- escapes every report string for ReportLab's paragraph markup and limits text length;
+- removes URL credentials and fragments and replaces query parameter values with
+  `REDACTED`, including URLs embedded in finding text;
+- handles zero findings, long text, multiple pages, Unicode, and special characters;
+- includes severity counts, check results with explicit PASS/WARN/FAIL/NOT APPLICABLE/
+  UNKNOWN labels, methodology, limitations, responsible-use guidance, page numbers, and the
+  creator attribution;
+- returns `Content-Type: application/pdf`, `Cache-Control: no-store`, and a download filename
+  based on the report date.
+
+PDF failures return safe JSON errors and never expose internal exception details. The
+endpoint is stateless and has no access to the network client.
+
+## 9. Testing strategy
 
 - **Unit tests** cover URL parsing, scheme/port/credential rejection, IPv4/IPv6 policy,
   split-horizon answers, header rules, scoring, and report structure.
@@ -273,12 +309,17 @@ risk rating. Every finding's weight is included in the JSON report and displayed
 - **Integration tests** start a loopback-only `ThreadingHTTPServer` and exercise the real
   guarded transport: redirects, link-local blocking, body caps, timeout, and connection
   refusal.
+- **PDF tests** cover MIME type, filename, valid PDF markers, zero and many findings, long
+  text across pages, Unicode/special characters, redaction, invalid/oversized payloads, and
+  the guarantee that rendering never invokes the network layer.
+- **Dashboard tests** check required sections, creator attribution, export controls,
+  temporary-history wording, palette tokens, focus styling, and safe DOM usage.
 - **Rebinding test** alternates DNS answers to prove the connect-time check is authoritative.
 - The suite never depends on a public website being online.
 
 ---
 
-## 9. Deployment boundary
+## 10. Deployment boundary
 
 The default bind address is `127.0.0.1:8000`. The project is a local MVP, not a hosted
 multi-tenant scanning service. If it is ever deployed remotely, it requires at minimum:
